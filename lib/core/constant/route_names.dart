@@ -7,5 +7,6 @@ class RouteNames {
   static const String calenderScreen = 'calenderScreen';
   static const String dialogScreen = 'dialogScreen';
   static const String signatureScreen = 'signatureScreen';
+  static const String xContainer = 'xContainer';
 
 }

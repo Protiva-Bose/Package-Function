@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../../core/constant/route_names.dart';
 import '../../feature/  table_calendar/Calender_screen.dart';
+import '../../feature/+x_container/container_screen.dart';
 import '../../feature/carousel_slider/carousel_Slider.dart';
 import '../../feature/dialog/dialog_screen.dart';
 import '../../feature/home/home_Screen.dart';
@@ -19,6 +20,7 @@ class AppRoutes {
     RouteNames.calenderScreen: (context) =>  CalenderScreen(),
     RouteNames.dialogScreen: (context) =>  DialogScreen(),
     RouteNames.signatureScreen: (context) =>  SignatureScreen(),
+    RouteNames.xContainer: (context) =>  XContainer(),
 
   };
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:packages/feature/%20%20table_calendar/Calender_screen.dart';
 
+import '../+x_container/container_screen.dart';
 import '../carousel_slider/carousel_Slider.dart';
 import '../dialog/dialog_screen.dart';
 import '../selected_star/selected_star.dart';
@@ -82,6 +83,11 @@ class _HomeScreenState extends State<HomeScreen>
       'title': 'Dialog',
       'description': 'The resizeToAvoidBottomInset property in a Scaffold controls whether the body of the Scaffold should resize when the on-screen keyboard appears (or when any system inset appears, like a bottom navigation bar or the keyboard).',
       'screen': const DialogScreen(),
+    },
+    {
+      'title': '+X” container',
+      'description': 'It updates the UI when you tap the “+X” container — ',
+      'screen': const XContainer(),
     },
 
   ];
