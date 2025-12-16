@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../../../../../app/widgets/shimmer_box/shimmer.dart';
 
 class Structure extends StatefulWidget {
   const Structure({super.key});
