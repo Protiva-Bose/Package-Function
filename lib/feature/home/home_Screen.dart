@@ -48,6 +48,23 @@ class _HomeScreenState extends State<HomeScreen>
       ''',
     'screen': const SignatureScreen(),
   },
+    {
+      'title': 'Set Launcher Icon',
+      'description':'''Pub Get this package:'\n flutter_launcher_icons: ^0.13.1\n
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path_android: "assets/images/hero_foreground.png"
+  image_path_ios: "assets/images/hero.png"
+  adaptive_icon_background: "assets/images/hero_background.png"
+  remove_alpha_ios: true\n
+ 
+flutter clean
+flutter pub get
+dart run flutter_launcher_icons
+        ''',
+      'screen': const PackageDetailScreen(title: 'resizeToAvoidBottomInset'),
+    },
 ];
 
 final List<Map<String, dynamic>> _apiRelated = [
@@ -135,6 +152,7 @@ final List<Map<String, dynamic>> _functions = [
          Under <resources> then <style> -> write this code.''',
     'screen': const PackageDetailScreen(title: 'resizeToAvoidBottomInset'),
   },
+
 ];
 
   @override
