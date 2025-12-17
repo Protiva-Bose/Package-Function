@@ -1,8 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:open_filex/open_filex.dart'; // Add this for opening PDFs
 
 class SecureProfileScreen extends StatefulWidget {
   const SecureProfileScreen({super.key});
@@ -14,15 +20,15 @@ class SecureProfileScreen extends StatefulWidget {
 class _SecureProfileScreenState extends State<SecureProfileScreen> {
   File? _imageFile;
   bool _isUnlocked = false;
-
   String? _savedPassword;
 
-  /// DETAILS AS LIST (title + description)
   List<Map<String, String>> _details = [];
 
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
+
+  String? _pdfPath; // store saved PDF path
 
   @override
   void initState() {
@@ -35,11 +41,10 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final detailsString = prefs.getString('profile_details');
-
     setState(() {
       _savedPassword = prefs.getString('profile_password');
 
+      final detailsString = prefs.getString('profile_details');
       if (detailsString != null) {
         _details = (jsonDecode(detailsString) as List)
             .map((e) => Map<String, String>.from(e))
@@ -47,9 +52,9 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
       }
 
       final imagePath = prefs.getString('profile_image');
-      if (imagePath != null) {
-        _imageFile = File(imagePath);
-      }
+      if (imagePath != null) _imageFile = File(imagePath);
+
+      _pdfPath = prefs.getString('profile_pdf_path');
     });
   }
 
@@ -66,6 +71,15 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
   Future<void> _saveImage(String path) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('profile_image', path);
+  }
+
+  Future<void> _savePdf(Uint8List bytes, String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('profile_pdf_path', path);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('PDF saved at $path')),
+    );
   }
 
   /// ================= IMAGE PICK =================
@@ -182,6 +196,64 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
     _saveDetails();
   }
 
+  /// ================= PDF GENERATION =================
+
+  Future<void> _generatePdf() async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('Profile Details',
+                  style:
+                  pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 16),
+              for (var detail in _details)
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(detail['title'] ?? '',
+                        style: pw.TextStyle(
+                            fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                    pw.Text(detail['desc'] ?? '',
+                        style: const pw.TextStyle(fontSize: 14)),
+                    pw.SizedBox(height: 12),
+                  ],
+                ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final bytes = await pdf.save();
+
+    // Save to device documents directory
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/my_profile.pdf');
+    await file.writeAsBytes(bytes);
+
+    _pdfPath = file.path;
+    await _savePdf(bytes, file.path);
+    setState(() {});
+  }
+
+  /// ================= OPEN PDF =================
+
+  void _openPdf() {
+    if (_pdfPath != null) {
+      OpenFilex.open(_pdfPath!);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No PDF found! Generate first.')),
+      );
+    }
+  }
+
   /// ================= UI =================
 
   @override
@@ -195,7 +267,7 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
               child: Opacity(
                 opacity: 0.6,
                 child: Image.asset(
-                  'assets/images/we.png',
+                  'assets/images/hp_2.png',
                   fit: BoxFit.contain,
                 ),
               ),
@@ -232,14 +304,31 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
                               const Text('Personal Details',
                                   style: TextStyle(
                                       fontSize: 18, fontWeight: FontWeight.bold)),
-                             GestureDetector(
-                                 onTap: (){_unlockOrCreatePassword();},
-                                 child: Image.asset(_isUnlocked ? "assets/icons/unlocked.png" : 'assets/icons/lock.png',scale: 3)),
-                              // IconButton(
-                              //   icon: Icon(
-                              //       _isUnlocked ? Icons.lock_open : Icons.lock),
-                              //   onPressed: _unlockOrCreatePassword,
-                              // ),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: _unlockOrCreatePassword,
+                                    child: Image.asset(
+                                        _isUnlocked
+                                            ? "assets/icons/unlocked.png"
+                                            : 'assets/icons/lock.png',
+                                        scale: 3),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  if (_isUnlocked) ...[
+                                    IconButton(
+                                      icon: const Icon(Icons.picture_as_pdf),
+                                      onPressed: _generatePdf,
+                                      tooltip: 'Save as PDF',
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.open_in_new),
+                                      onPressed: _openPdf,
+                                      tooltip: 'Open PDF',
+                                    ),
+                                  ],
+                                ],
+                              )
                             ],
                           ),
                           const Divider(),
@@ -250,8 +339,8 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
                               itemCount: _details.length,
                               itemBuilder: (_, i) => ListTile(
                                 title: Text(_details[i]['title']!,
-                                    style:
-                                    const TextStyle(fontWeight: FontWeight.bold)),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
                                 subtitle: Text(_details[i]['desc']!),
                                 trailing: PopupMenuButton(
                                   onSelected: (v) {
@@ -278,7 +367,10 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
                           ] else
                             const Text(
                               'Details are locked 🤪\nEnter password to view.',
-                              style: TextStyle(color: Colors.grey,fontWeight: FontWeight.w600,fontSize: 16),
+                              style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16),
                               textAlign: TextAlign.center,
                             ),
                         ],
@@ -292,6 +384,5 @@ class _SecureProfileScreenState extends State<SecureProfileScreen> {
         ),
       ),
     );
-
   }
 }

@@ -1,5 +1,5 @@
 class RouteNames {
-  static const String splashScreen = '/';
+  static const String splashScreen = 'splashScreen';
   static const String homeScreen = 'homeScreen';
   static const String shimmerScreen = 'shimmerScreen';
   static const String carouselSliderScreen = 'carouselSliderScreen';
@@ -8,5 +8,6 @@ class RouteNames {
   static const String dialogScreen = 'dialogScreen';
   static const String signatureScreen = 'signatureScreen';
   static const String xContainer = 'xContainer';
+  static const String profileScreen = 'profileScreen';
 
 }

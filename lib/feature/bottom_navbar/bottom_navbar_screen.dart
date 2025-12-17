@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../profile/profile_Screen.dart';
 
 class BottomNavBarWidget extends StatelessWidget {
@@ -47,6 +46,7 @@ class BottomNavBarWidget extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => const ProfileScreen(),
+                     // builder: (_) => const Practice(),
                     ),
                   );
                 } else {
